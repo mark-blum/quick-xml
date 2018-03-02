@@ -76,6 +76,16 @@ impl<'a> BytesStart<'a> {
     }
 
     /// Gets the undecoded raw tag name as a `&[u8]`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use quick_xml::events::BytesStart;
+    /// // This would correspond to the following xml
+    /// // b"<namespace:hello&gt; greeting='wave'>"
+    /// let mut element = BytesStart::borrowed(b"namespace:hello&gt; greeting='wave'", 19);
+    /// assert_eq!(element.name(), b"namespace:hello&gt;");
+    /// ```
     pub fn name(&self) -> &[u8] {
         &self.buf[..self.name_len]
     }
@@ -83,6 +93,16 @@ impl<'a> BytesStart<'a> {
     /// Gets the undecoded raw local tag name (excluding namespace) as a `&[u8]`.
     ///
     /// All content up to and including the first `:` character is removed from the tag name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use quick_xml::events::BytesStart;
+    /// // This would correspond to the following xml
+    /// // b"<namespace:hello&gt; greeting='wave'>"
+    /// let mut element = BytesStart::borrowed(b"namespace:hello&gt; greeting='wave'", 19);
+    /// assert_eq!(element.local_name(), b"hello&gt;");
+    /// ```
     #[inline]
     pub fn local_name(&self) -> &[u8] {
         let name = self.name();
@@ -93,6 +113,17 @@ impl<'a> BytesStart<'a> {
     ///
     /// XML escape sequences like "`&lt;`" will be replaced by their unescaped characters like
     /// "`<`".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use quick_xml::events::BytesStart;
+    /// // This would correspond to the following xml
+    /// // b"<namespace:hello&gt; greeting='wave'>"
+    /// let mut element = BytesStart::borrowed(b"namespace:hello&gt; greeting='wave'", 19);
+    /// let unescaped = element.unescaped().unwrap();
+    /// assert_eq!(unescaped.as_ref(), b"namespace:hello> greeting='wave'");
+    /// ```
     pub fn unescaped(&self) -> Result<Cow<[u8]>> {
         unescape(&*self.buf).map_err(Error::EscapeError)
     }
@@ -100,6 +131,7 @@ impl<'a> BytesStart<'a> {
     /// Returns an iterator over the attributes of this tag.
     ///
     /// # Examples
+    ///
     /// ```
     /// use quick_xml::Reader;
     /// use quick_xml::events::Event;
