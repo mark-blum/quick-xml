@@ -98,11 +98,92 @@ impl<'a> BytesStart<'a> {
     }
 
     /// Returns an iterator over the attributes of this tag.
+    ///
+    /// # Examples
+    /// ```
+    /// use quick_xml::Reader;
+    /// use quick_xml::events::Event;
+    ///
+    /// let xml = "<tag1 foo=\"bar\" meal = 'turkey'></tag1>";
+    /// let mut reader = Reader::from_str(xml);
+    /// let mut buf = Vec::new();
+    ///
+    /// loop {
+    ///     match reader.read_event(&mut buf) {
+    ///         Ok(Event::Start(e)) => {
+    ///             let mut iter = e.attributes();
+    ///
+    ///             // The Attributes iterator returns a `Option<Result<Attribute>>`.
+    ///             // We know our input is good though.
+    ///             let attr_1 = iter.next().unwrap().unwrap();
+    ///             // If we wanted a string we could use String::from_utf8_lossy(...)
+    ///             assert_eq!(b"foo", attr_1.key);
+    ///             assert_eq!(b"bar", attr_1.value.as_ref());
+    ///
+    ///             let attr_2 = iter.next().unwrap().unwrap();
+    ///             assert_eq!(b"meal", attr_2.key);
+    ///             assert_eq!(b"turkey", attr_2.value.as_ref());
+    ///
+    ///             assert!(iter.next().is_none());
+    ///         },
+    ///         Ok(Event::Eof) => break,
+    ///         _ => {},
+    ///     }
+    ///     buf.clear();
+    /// }
+    /// ```
     pub fn attributes(&self) -> Attributes {
         Attributes::new(self, self.name_len)
     }
 
     /// Returns an iterator over the HTML-like attributes of this tag (no mandatory quotes or `=`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use quick_xml::Reader;
+    /// use quick_xml::events::Event;
+    ///
+    /// let xml = "<a href=noquotes some lone attributes title=\"quotes still work\"></a>";
+    /// let mut reader = Reader::from_str(xml);
+    /// let mut buf = Vec::new();
+    ///
+    /// loop {
+    ///     match reader.read_event(&mut buf) {
+    ///         Ok(Event::Start(e)) => {
+    ///             let mut iter = e.html_attributes();
+    ///
+    ///             // The Attributes iterator returns a `Option<Result<Attribute>>`.
+    ///             // We know our input is good though.
+    ///             let attr_1 = iter.next().unwrap().unwrap();
+    ///             // If we wanted a string we could use String::from_utf8_lossy(...)
+    ///             assert_eq!(b"href", attr_1.key);
+    ///             assert_eq!(b"noquotes", attr_1.value.as_ref());
+    ///
+    ///             let attr_2 = iter.next().unwrap().unwrap();
+    ///             assert_eq!(b"some", attr_2.key);
+    ///             assert_eq!(b"", attr_2.value.as_ref());
+    ///
+    ///             let attr_3 = iter.next().unwrap().unwrap();
+    ///             assert_eq!(b"lone", attr_3.key);
+    ///             assert_eq!(b"", attr_3.value.as_ref());
+    ///
+    ///             let attr_4 = iter.next().unwrap().unwrap();
+    ///             assert_eq!(b"attributes", attr_4.key);
+    ///             assert_eq!(b"", attr_4.value.as_ref());
+    ///
+    ///             let attr_5 = iter.next().unwrap().unwrap();
+    ///             assert_eq!(b"title", attr_5.key);
+    ///             assert_eq!(b"quotes still work", attr_5.value.as_ref());
+    ///
+    ///             assert!(iter.next().is_none());
+    ///         },
+    ///         Ok(Event::Eof) => break,
+    ///         _ => {},
+    ///     }
+    ///     buf.clear();
+    /// }
+    /// ```
     pub fn html_attributes(&self) -> Attributes {
         Attributes::html(self, self.name_len)
     }
@@ -111,7 +192,7 @@ impl<'a> BytesStart<'a> {
     ///
     /// The yielded items must be convertible to [`Attribute`] using `Into`.
     ///
-    /// [`Attribute`]: attributes/struct.Attributes.html
+    /// [`Attribute`]: attributes/struct.Attribute.html
     pub fn extend_attributes<'b, I>(&mut self, attributes: I) -> &mut BytesStart<'a>
     where
         I: IntoIterator,
